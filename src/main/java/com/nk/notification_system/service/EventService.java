@@ -2,6 +2,7 @@ package com.nk.notification_system.service;
 
 import com.nk.notification_system.dto.CreateEventDTO;
 import com.nk.notification_system.dto.EventResponse;
+import com.nk.notification_system.messaging.EventProducer;
 import com.nk.notification_system.model.Event;
 import com.nk.notification_system.model.Subscription;
 import com.nk.notification_system.repository.EventRepository;
@@ -15,13 +16,11 @@ import java.util.List;
 public class EventService {
 
     private final EventRepository eventRepository;
-    private final SubscriptionRepository subscriptionRepository;
-    private final NotificationService notificationService;
+    private final EventProducer eventProducer;
 
-    public EventService(EventRepository eventRepository, SubscriptionRepository subscriptionRepository, NotificationService notificationService) {
+    public EventService(EventRepository eventRepository, EventProducer eventProducer) {
         this.eventRepository = eventRepository;
-        this.subscriptionRepository = subscriptionRepository;
-        this.notificationService = notificationService;
+        this.eventProducer = eventProducer;
     }
 
     public List<EventResponse> findAllEvents() {
@@ -40,9 +39,7 @@ public class EventService {
 
         Event savedEvent = eventRepository.save(event);
 
-        List<Subscription> subscribers = findSubsToNotify(savedEvent.getEventName());
-
-        notificationService.sendNotifications(savedEvent, subscribers);
+        eventProducer.publishEvent(savedEvent.getEventId());
 
         return savedEvent;
     }
@@ -55,9 +52,5 @@ public class EventService {
                 event.getPayload(),
                 event.getEventDate()
         );
-    }
-
-    public List<Subscription> findSubsToNotify(String eventName) {
-        return subscriptionRepository.findByEventName(eventName);
     }
 }

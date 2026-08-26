@@ -6,6 +6,15 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.util.Date;
 
 @Entity
+@Table(
+        name = "notification",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "unq_notification_user_event",  // to ensure no duplication notification is sent (idempotency)
+                        columnNames = {"user_id", "event_id"}
+                )
+        }
+)
 public class Notification {
 
     @Id

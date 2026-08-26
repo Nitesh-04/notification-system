@@ -5,18 +5,25 @@ import com.nk.notification_system.model.Event;
 import com.nk.notification_system.model.Notification;
 import com.nk.notification_system.model.StatusType;
 import com.nk.notification_system.model.Subscription;
+import com.nk.notification_system.repository.EventRepository;
 import com.nk.notification_system.repository.NotificationRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final EventRepository eventRepository;
+    private final SubscriptionService subscriptionService;
 
-    public NotificationService(NotificationRepository notificationRepository) {
+    public NotificationService(NotificationRepository notificationRepository, EventRepository eventRepository, SubscriptionService subscriptionService) {
         this.notificationRepository = notificationRepository;
+        this.eventRepository = eventRepository;
+        this.subscriptionService = subscriptionService;
     }
 
     public List<NotificationResponse> getNotificationsForEvent(Long eventId) {
@@ -32,7 +39,12 @@ public class NotificationService {
                 .toList();
     }
 
-    public void sendNotifications(Event event, List<Subscription> subscriptions) {
+    @Transactional
+    public void sendNotification(Long eventId) {
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found: " + eventId));
+
+        List<Subscription> subscriptions = subscriptionService.findSubsToNotify(event.getEventName());
+
         for (Subscription subscription : subscriptions) {
             Notification notification = new Notification();
 

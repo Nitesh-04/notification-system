@@ -35,6 +35,10 @@ public class SubscriptionService {
                 .toList();
     }
 
+    public List<Subscription> findSubsToNotify(String eventName) {
+        return subscriptionRepository.findByEventName(eventName);
+    }
+
     @Transactional
     public Subscription createSubscription(CreateSubRequest request) {
         User user = userRepository.findById(request.userId())
