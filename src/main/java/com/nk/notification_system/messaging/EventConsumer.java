@@ -14,9 +14,11 @@ import java.util.List;
 public class EventConsumer {
 
     private final NotificationService notificationService;
+    private final ObjectMapper objectMapper;
 
-    public EventConsumer(NotificationService notificationService) {
+    public EventConsumer(NotificationService notificationService, ObjectMapper objectMapper) {
         this.notificationService = notificationService;
+        this.objectMapper = objectMapper;
     }
 
     @KafkaListener(
@@ -25,7 +27,7 @@ public class EventConsumer {
     )
     public void consume(String jsonMessage) throws Exception {
 
-        EventCreateMessage eventCreateMessage = new ObjectMapper().readValue(jsonMessage, EventCreateMessage.class);
+        EventCreateMessage eventCreateMessage = objectMapper.readValue(jsonMessage, EventCreateMessage.class);
 
         System.out.println("Received event " + eventCreateMessage.eventId());
 

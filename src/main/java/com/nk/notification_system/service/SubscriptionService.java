@@ -1,6 +1,7 @@
 package com.nk.notification_system.service;
 
 import com.nk.notification_system.dto.CreateSubRequest;
+import com.nk.notification_system.dto.SubscriberData;
 import com.nk.notification_system.dto.SubscriptionResponse;
 import com.nk.notification_system.model.Subscription;
 import com.nk.notification_system.model.User;
@@ -35,8 +36,8 @@ public class SubscriptionService {
                 .toList();
     }
 
-    public List<Subscription> findSubsToNotify(String eventName) {
-        return subscriptionRepository.findByEventName(eventName);
+    public List<SubscriberData> findSubsToNotify(String eventName) {
+        return subscriptionRepository.findEventSubscribers(eventName);
     }
 
     @Transactional
