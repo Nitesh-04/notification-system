@@ -17,8 +17,8 @@ public class NotificationRetryProducer {
         this.notificationFailService = notificationFailService;
     }
 
-    public void publishRetry(Long eventId, Long userId, Integer attempt) {
-        NotificationRetryMessage notificationRetryMessage = new NotificationRetryMessage(eventId, userId, attempt);
+    public void publishRetry(Long eventId, Long userId, String userEmail, Integer attempt) {
+        NotificationRetryMessage notificationRetryMessage = new NotificationRetryMessage(eventId, userId, userEmail, attempt);
 
         if(attempt == 4) {
             notificationFailService.markAsFailNotification(eventId, userId);

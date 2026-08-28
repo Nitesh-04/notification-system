@@ -65,7 +65,7 @@ public class NotificationService {
                                 subscription.userId() +
                                 ", event " + eventId
                 );
-                notificationRetryProducer.publishRetry(event.getEventId(), subscription.userId(), 1);
+                notificationRetryProducer.publishRetry(event.getEventId(), subscription.userId(), subscription.userEmail(), 1);
             }
         }
     }

@@ -28,6 +28,6 @@ public class NotificationRetryConsumer {
 
         System.out.println("Received retry event " + notificationRetryMessage.eventId() + " attempt " + notificationRetryMessage.attempt());
 
-        notificationSendService.retryNotifyUser(notificationRetryMessage.eventId(), notificationRetryMessage.userId(), notificationRetryMessage.attempt());
+        notificationSendService.retryNotifyUser(notificationRetryMessage.eventId(), notificationRetryMessage.userId(), notificationRetryMessage.userEmail(), notificationRetryMessage.attempt());
     }
 }

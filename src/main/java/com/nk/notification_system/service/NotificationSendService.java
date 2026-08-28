@@ -20,12 +20,14 @@ public class NotificationSendService {
     private final EntityManager entityManager;
     private final EventRepository eventRepository;
     private final NotificationRetryProducer notificationRetryProducer;
+    private final MailService mailService;
 
-    public NotificationSendService(NotificationRepository notificationRepository, EntityManager entityManager, EventRepository eventRepository, NotificationRetryProducer notificationRetryProducer) {
+    public NotificationSendService(NotificationRepository notificationRepository, EntityManager entityManager, EventRepository eventRepository, NotificationRetryProducer notificationRetryProducer, MailService mailService) {
         this.notificationRepository = notificationRepository;
         this.entityManager = entityManager;
         this.eventRepository = eventRepository;
         this.notificationRetryProducer = notificationRetryProducer;
+        this.mailService = mailService;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -34,6 +36,8 @@ public class NotificationSendService {
         if(userId == 10) {
             throw new RuntimeException("error"); // test to fail
         }
+
+        mailService.sendEmail(userEmail, event.getEventName(), event.getPayload());
 
         Notification notification = new Notification();
 
@@ -51,13 +55,15 @@ public class NotificationSendService {
     }
 
     @Transactional
-    public void retryNotifyUser(Long eventId, Long userId, int attempt) {
+    public void retryNotifyUser(Long eventId, Long userId, String userEmail, int attempt) {
         try {
             Event event = eventRepository.findById(eventId).orElseThrow();
 
-            if(userId == 10) {
-                throw new RuntimeException("error");
-            }
+//            if(userId == 10) {
+//                throw new RuntimeException("error");
+//            }
+
+            mailService.sendEmail(userEmail, event.getEventName(), event.getPayload());
 
             Notification notification = new Notification();
             notification.setEvent(event);
@@ -83,7 +89,7 @@ public class NotificationSendService {
                             userId +
                             ", event " + eventId
             );
-            notificationRetryProducer.publishRetry(eventId, userId, attempt+1);
+            notificationRetryProducer.publishRetry(eventId, userId, userEmail, attempt+1);
         }
     }
 }
