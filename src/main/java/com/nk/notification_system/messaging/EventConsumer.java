@@ -1,14 +1,10 @@
 package com.nk.notification_system.messaging;
 
 import com.nk.notification_system.message.EventCreateMessage;
-import com.nk.notification_system.model.Subscription;
-import com.nk.notification_system.service.EventService;
 import com.nk.notification_system.service.NotificationService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
-
-import java.util.List;
 
 @Component
 public class EventConsumer {
@@ -31,6 +27,6 @@ public class EventConsumer {
 
         System.out.println("Received event " + eventCreateMessage.eventId());
 
-        notificationService.sendNotification(eventCreateMessage.eventId());
+        notificationService.sendNotifications(eventCreateMessage.eventId());
     }
 }
