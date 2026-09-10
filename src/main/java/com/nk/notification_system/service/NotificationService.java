@@ -4,10 +4,8 @@ import com.nk.notification_system.dto.NotificationResponse;
 import com.nk.notification_system.dto.SubscriberData;
 import com.nk.notification_system.messaging.NotificationRetryProducer;
 import com.nk.notification_system.model.*;
-import com.nk.notification_system.monitoring.NotificationMetrics;
 import com.nk.notification_system.repository.EventRepository;
 import com.nk.notification_system.repository.NotificationRepository;
-import io.micrometer.core.instrument.Timer;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -21,15 +19,13 @@ public class NotificationService {
     private final SubscriptionService subscriptionService;
     private final NotificationSendService notificationSendService;
     private final NotificationRetryProducer notificationRetryProducer;
-    private final NotificationMetrics notificationMetrics;
 
-    public NotificationService(NotificationRepository notificationRepository, EventRepository eventRepository, SubscriptionService subscriptionService, NotificationSendService notificationSendService, NotificationRetryProducer notificationRetryProducer, NotificationMetrics notificationMetrics) {
+    public NotificationService(NotificationRepository notificationRepository, EventRepository eventRepository, SubscriptionService subscriptionService, NotificationSendService notificationSendService, NotificationRetryProducer notificationRetryProducer) {
         this.notificationRepository = notificationRepository;
         this.eventRepository = eventRepository;
         this.subscriptionService = subscriptionService;
         this.notificationSendService = notificationSendService;
         this.notificationRetryProducer = notificationRetryProducer;
-        this.notificationMetrics = notificationMetrics;
     }
 
     public List<NotificationResponse> getNotificationsForEvent(Long eventId) {
@@ -47,40 +43,32 @@ public class NotificationService {
 
     public void sendNotifications(Long eventId) {
 
-        Timer.Sample notificationTimer = notificationMetrics.startEventNotificationProcessingTimer();
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found: " + eventId));
 
-        try {
+        List<SubscriberData> subscriptions = subscriptionService.findSubsToNotify(event.getEventName());
 
-            Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found: " + eventId));
-
-            List<SubscriberData> subscriptions = subscriptionService.findSubsToNotify(event.getEventName());
-
-            for (SubscriberData subscription : subscriptions) {
-                try {
-                    notificationSendService.notifyUser(
-                            event,
-                            subscription.userId(),
-                            subscription.userEmail()
-                    );
-                } catch (DataIntegrityViolationException e) {
-                    System.out.println(
-                            "Notification already sent"
-                    );
-                } catch (Exception exception) {
-                    // kafka retry queue
-                    // subscription.getUser().getUserId() and event.getEventId
-                    System.out.println(
-                            "Notification failed for user " +
-                                    subscription.userId() +
-                                    ", event " + eventId
-                    );
-                    notificationRetryProducer.publishRetry(event.getEventId(), subscription.userId(), subscription.userEmail(), 1);
-                    notificationMetrics.notificationRetried();
-                }
+        for (SubscriberData subscription : subscriptions) {
+            try {
+                notificationSendService.notifyUser(
+                        event,
+                        subscription.userId(),
+                        subscription.userEmail()
+                );
+            } catch (DataIntegrityViolationException e) {
+                System.out.println("Notification already sent");
+            } catch (Exception exception) {
+                System.out.println(
+                        "Notification failed for user " +
+                                subscription.userId() +
+                                ", event " + eventId
+                );
+                notificationRetryProducer.publishRetry(
+                        event.getEventId(),
+                        subscription.userId(),
+                        subscription.userEmail(),
+                        1
+                );
             }
-        }
-        finally {
-            notificationMetrics.stopEventNotificationProcessingTimer(notificationTimer);
         }
     }
 }

@@ -5,9 +5,7 @@ import com.nk.notification_system.model.Event;
 import com.nk.notification_system.model.Notification;
 import com.nk.notification_system.model.StatusType;
 import com.nk.notification_system.model.User;
-import com.nk.notification_system.monitoring.NotificationMetrics;
 import com.nk.notification_system.repository.EventRepository;
-import io.micrometer.core.instrument.Timer;
 import jakarta.persistence.EntityManager;
 import com.nk.notification_system.repository.NotificationRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -23,15 +21,13 @@ public class NotificationSendService {
     private final EventRepository eventRepository;
     private final NotificationRetryProducer notificationRetryProducer;
     private final MailService mailService;
-    private final NotificationMetrics notificationMetrics;
 
-    public NotificationSendService(NotificationRepository notificationRepository, EntityManager entityManager, EventRepository eventRepository, NotificationRetryProducer notificationRetryProducer, MailService mailService, NotificationMetrics notificationMetrics) {
+    public NotificationSendService(NotificationRepository notificationRepository, EntityManager entityManager, EventRepository eventRepository, NotificationRetryProducer notificationRetryProducer, MailService mailService) {
         this.notificationRepository = notificationRepository;
         this.entityManager = entityManager;
         this.eventRepository = eventRepository;
         this.notificationRetryProducer = notificationRetryProducer;
         this.mailService = mailService;
-        this.notificationMetrics = notificationMetrics;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -41,14 +37,7 @@ public class NotificationSendService {
             throw new RuntimeException("error"); // test to fail
         }
 
-        Timer.Sample emailTimer = notificationMetrics.startEmailTimer();
-
-        try {
-            mailService.sendEmail(userEmail, event.getEventName(), event.getPayload());
-        }
-        finally {
-            notificationMetrics.stopEmailTimer(emailTimer);
-        }
+        mailService.sendEmail(userEmail, event.getEventName(), event.getPayload());
 
         Notification notification = new Notification();
 
@@ -62,8 +51,6 @@ public class NotificationSendService {
 
         notificationRepository.save(notification);
 
-        notificationMetrics.notificationSent();
-
         System.out.println("Notification sent to " + userId + " " + userEmail + " - " + event.getPayload());
     }
 
@@ -76,14 +63,7 @@ public class NotificationSendService {
 //                throw new RuntimeException("error");
 //            }
 
-            Timer.Sample emailTimer = notificationMetrics.startEmailTimer();
-
-            try {
-                mailService.sendEmail(userEmail, event.getEventName(), event.getPayload());
-            }
-            finally {
-                notificationMetrics.stopEmailTimer(emailTimer);
-            }
+            mailService.sendEmail(userEmail, event.getEventName(), event.getPayload());
 
             Notification notification = new Notification();
             notification.setEvent(event);
@@ -94,8 +74,6 @@ public class NotificationSendService {
 
             notification.setStatus(StatusType.RETRY_SENT);
             notificationRepository.save(notification);
-
-            notificationMetrics.notificationSent();
 
             System.out.println("Notification sent to " + userId + " for event " + eventId + " - " + event.getPayload());
         } catch (DataIntegrityViolationException e) {
