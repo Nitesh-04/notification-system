@@ -1,4 +1,6 @@
 package com.nk.notification_system.dto;
 
-public record SubscriberData(Long userId, String userEmail) {
+import com.nk.notification_system.model.NotificationChannel;
+
+public record SubscriberData(Long userId, String userEmail, NotificationChannel channel) {
 }

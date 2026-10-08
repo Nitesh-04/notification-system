@@ -16,7 +16,8 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     @Query("""
     select new com.nk.notification_system.dto.SubscriberData(
         s.user.userId,
-        s.user.email
+        s.user.email,
+        s.channel
     )
     from Subscription s
     where s.eventName = :eventName

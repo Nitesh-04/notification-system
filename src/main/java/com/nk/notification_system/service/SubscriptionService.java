@@ -31,7 +31,8 @@ public class SubscriptionService {
                 .map(subscription -> new SubscriptionResponse(
                         subscription.getSubId(),
                         subscription.getUser().getUserId(),
-                        subscription.getEventName()
+                        subscription.getEventName(),
+                        subscription.getChannel()
                 ))
                 .toList();
     }
@@ -57,6 +58,7 @@ public class SubscriptionService {
         Subscription subscription = new Subscription();
         subscription.setUser(user);
         subscription.setEventName(request.eventName());
+        subscription.setChannel(request.channel());
         return subscriptionRepository.save(subscription);
     }
 }

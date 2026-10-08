@@ -1,7 +1,7 @@
 package com.nk.notification_system.messaging;
 
 import com.nk.notification_system.message.EventCreateMessage;
-import com.nk.notification_system.service.NotificationService;
+import com.nk.notification_system.service.FanoutService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
@@ -9,11 +9,11 @@ import tools.jackson.databind.ObjectMapper;
 @Component
 public class EventConsumer {
 
-    private final NotificationService notificationService;
+    private final FanoutService fanoutService;
     private final ObjectMapper objectMapper;
 
-    public EventConsumer(NotificationService notificationService, ObjectMapper objectMapper) {
-        this.notificationService = notificationService;
+    public EventConsumer(FanoutService fanoutService, ObjectMapper objectMapper) {
+        this.fanoutService = fanoutService;
         this.objectMapper = objectMapper;
     }
 
@@ -27,6 +27,6 @@ public class EventConsumer {
 
         System.out.println("Received event " + eventCreateMessage.eventId());
 
-        notificationService.sendNotifications(eventCreateMessage.eventId());
+        fanoutService.fanOut(eventCreateMessage.eventId());
     }
 }

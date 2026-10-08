@@ -32,7 +32,8 @@ public class SubscriptionController {
         var response = new SubscriptionResponse(
                 subscription.getSubId(),
                 subscription.getUser().getUserId(),
-                subscription.getEventName()
+                subscription.getEventName(),
+                subscription.getChannel()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

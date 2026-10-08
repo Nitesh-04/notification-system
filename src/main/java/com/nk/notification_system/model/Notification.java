@@ -11,7 +11,7 @@ import java.util.Date;
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "unq_notification_user_event",  // to ensure no duplication notification is sent (idempotency)
-                        columnNames = {"user_id", "event_id"}
+                        columnNames = {"user_id", "event_id", "channel"}
                 )
         }
 )
@@ -31,6 +31,9 @@ public class Notification {
 
     @Enumerated(EnumType.STRING)
     private StatusType status;
+
+    @Enumerated(EnumType.STRING)
+    private NotificationChannel channel;
 
     @CreationTimestamp
     private Date sentAtDate;
@@ -61,6 +64,14 @@ public class Notification {
 
     public void setStatus(StatusType status) {
         this.status = status;
+    }
+
+    public NotificationChannel getChannel() {
+        return channel;
+    }
+
+    public void setChannel(NotificationChannel channel) {
+        this.channel = channel;
     }
 
     public Date getSentAtDate() {

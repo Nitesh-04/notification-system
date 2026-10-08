@@ -28,6 +28,10 @@ public class Subscription {
 
     private String eventName;
 
+    // Null means this is a legacy V2 subscription; V3 selects the event default.
+    @Enumerated(EnumType.STRING)
+    private NotificationChannel channel;
+
     public Long getSubId() {
         return subId;
     }
@@ -46,5 +50,13 @@ public class Subscription {
 
     public void setEventName(String eventName) {
         this.eventName = eventName;
+    }
+
+    public NotificationChannel getChannel() {
+        return channel;
+    }
+
+    public void setChannel(NotificationChannel channel) {
+        this.channel = channel;
     }
 }
